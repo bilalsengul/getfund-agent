@@ -1,0 +1,14 @@
+{
+  "name": "getfund",
+  "owner": {
+    "name": "getfund",
+    "url": "https://getfund.space"
+  },
+  "plugins": [
+    {
+      "name": "getfund",
+      "source": "./",
+      "description": "Apply to startup programs with getfund: your company brain, your queue and a browser that fills the forms."
+    }
+  ]
+}
