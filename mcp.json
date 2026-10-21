@@ -3,14 +3,7 @@
   "mcpServers": {
     "getfund": {
       "type": "streamable-http",
-      "url": "https://preprod.getfund.space/mcp",
-      "extensions": {
-        "com.openai": {
-          "auth": {
-            "type": "oauth"
-          }
-        }
-      }
+      "url": "https://preprod.getfund.space/mcp"
     },
     "playwright": {
       "type": "stdio",
