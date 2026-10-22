@@ -2,13 +2,14 @@
   "mcpServers": {
     "getfund": {
       "type": "http",
-      "url": "https://preprod.getfund.space/mcp"
+      "url": "https://getfund.space/mcp"
     },
     "playwright": {
       "command": "npx",
       "args": [
-        "@playwright/mcp@latest",
-        "--headless"
+        "@playwright/mcp@0.0.83",
+        "--browser",
+        "chrome"
       ]
     }
   }
