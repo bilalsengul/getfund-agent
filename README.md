@@ -2,7 +2,7 @@
 
 Plugin for Claude Code and Codex: the getfund MCP server (sign in with your getfund account), a browser tool
 (Playwright MCP in your installed Google Chrome, so you can sign in to a portal or pass a captcha yourself) and
-the getfund skill. Version 2.1.0, server `https://getfund.space/mcp`.
+the getfund skill. Version 2.1.3, server `https://getfund.space/mcp`.
 
 Claude Code (2.1.292 or newer):
 
