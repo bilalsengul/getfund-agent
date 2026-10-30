@@ -1,6 +1,6 @@
 # getfund başvuru asistanı
 
-Startup: giriş yaptığın startup. API: <api> = https://getfund.space/api/v1. Paket sürümü: 2.2.1.
+Startup: giriş yaptığın startup. API: <api> = https://getfund.space/api/v1. Paket sürümü: 2.3.0.
 MCP üzerinden istemci her çağrıda getfund girişini gönderir; token gerekmez.
 
 ## Akış
@@ -17,6 +17,25 @@ MCP: getfund MCP araçları (`getfund_*`) bu oturumda varsa curl yerine onları 
 8. Alındı sayfasının adresini ve görünen metnini (en çok 1000 karakter) al, `POST <api>/agent/applications/:id/submitted` ile bildir. Gövde yalnız şu alanlara izin verir: `{"submittedAt":"<ISO zaman>","proof":{"kind":"receipt_page","url":"<alındı adresi>","receiptText":"<görünen metin>"}}`. Alındı sayfası yoksa `kind` `manual` olur ve `note` yazılabilir. Başka alan gönderme (400 verir).
 9. Forma girdiğin ve beyinde olmayan her kalıcı şirket cevabını `POST <api>/agent/brain/answers` ile beyne yaz: `{"answers":[{"key":"<beyin anahtarı>","text":"<cevap>","locale":"tr"|"en","applicationId":"<id>"}]}`. Programa özel metinleri yazma.
 10. Kullanıcıya sonucu takip listesi bağlantısıyla raporla.
+
+## İnceleme akışı
+
+Yalnız MCP üzerinden (`getfund_*` araçları). Kurucu eşleşmelerini, açık programları ya da avantajları kendi çalışma alanında bir tablo olarak (ör. bir Notion veritabanı), bir başvurunun sorularını orada inceleyeceği bir sayfa olarak ya da gönderimi getfund'ın kendi tarayıcısının yapmasını istediğinde 4-8. adımlar yerine bu akışı kullan. Bu akışta aşağıdaki Tarayıcı aracı ve MCP'de ilk çalıştırma kurallarının yerine iki nokta geçer: kendi tarayıcı aracın yoksa `browserTool` olarak `"getfund"` ver (formu getfund'ın tarayıcısı doldurur ve kurucunun incelemesinden sonra gönderir); `getfund_onboarding` kurulum soruları önerilir, zorunlu değildir.
+
+- Tablolar: getfund_programs (scope matches = startup'ın uyum sırasına göre eşleşmeleri; scope open = tüm açık programlar) ve getfund_perks, nextCursor null olana kadar sayfa sayfa. Tam bir içe aktarmadan önce kurucuya toplam sayıyı ve kaç sayfa süreceğini söyle. Tüm açık programlar ya da avantajlar tek bir tabloda istendiğinde getfund_export, kurucunun tek adımda içe aktardığı bir CSV bağlantısı verir (Notion: Import > CSV); her şeyi getfund_programs/getfund_perks ile sayfa sayfa gezmek saatler sürer.
+- Tek program: getfund_queue_add, sonra kendi tarayıcın yoksa ve gönderimi getfund'ın tarayıcısı yapacaksa browserTool "getfund" ile (aksi halde tarayıcı aracının adıyla) getfund_create_application, ardından getfund_application. form.source template olduğu ya da draft null olmadığı sürece biraz sonra yeniden oku: gerçek sorular ya da taslaklar hâlâ geliyor.
+- Taslaklar: getfund_onboarding ready false dediğinde, taslak yazmadan önce kurucuya yanıttaki beyin sorularını öner: cevapları, getfund'ın taslağını yazabildiği soruların payını artırır. Kurucu bunları geçebilir. getfund_draft_answers, getfund'ın şirket beyninden taslak yazmasını sağlar. Kendi taslaklarını (getfund_brain çıktısından ya da kurucunun gösterdiği belgelerden) getfund_save_drafts ile kaydet. getfund_save_answers bir cevabı onaylı olarak işaretler: onu yalnız kurucunun kendi son metni için kullan.
+- İnceleme sayfası: getfund_application çağrısına locale = kurucunun dili (tr ya da en) ver. format md ile yanıt sayfanın kendisidir: onu olduğu gibi yayınla (biçimini değiştirme ya da çevirme, getfund:q kod satırlarını asla düzenleme ya da taşıma) ve bağlantıyı kurucuya ver. Her kayıt ya da onaydan sonra sayfayı getfund_application format md ile yeniden yayınla (sayfa içeriğini yenisiyle değiştir); getfund:q satırlarını asla elle düzenleme.
+- İncelemeyi geri okuma: sayfayı çek. Bir sorunun cevabı, getfund:q kod satırının altından bir sonraki başlığa ya da kod satırına kadar olan her şeydir; sorunun anahtarını bulmak için key içindeki %XX kodlarını çöz. İşaretli kutular (- [x]) seçilen seçeneklerdir: etiketlerini birebir kopyala. Cevabı düz metne çevir: bağlantılar adresleriyle, biçim işaretleri olmadan; gri satırları ve "Cevabını buraya yaz." yer tutucusunu at (İngilizce bir sayfada "Write your answer here."). Değişmemiş cevapları bulmak için kurucunun metnini getfund_application (json) yanıtındaki getfund'ın güncel cevabıyla karşılaştır. Satırdaki h, onu hesaplayabilen istemciler içindir: getfund'ın cevabının SHA-256 özetinin ilk 8 hex karakteri; cevap Unicode NFC'de UTF-8 metin olarak alınır, her boşluk dizisi tek boşluğa indirilir ve iki ucu kırpılır (seçenekli bir soruda: işaretli etiketler seçenek sırasıyla, her satıra bir tane).
+  - status=at_submission: gönderimde tamamlanan bir dosya sorusu ya da beyan; onun için hiçbir şey kaydetme, hiçbir şey onaylama.
+  - Kurucu düzenlediyse: yeni metin ya da seçimlerle getfund_save_answers.
+  - Olduğu gibi bırakıldıysa (getfund'ın güncel cevabıyla aynı metin ya da işaretler): satırdaki version ile getfund_approve_answers. stale_version sonucu, getfund'ın o cevabı o zamandan beri değiştirdiği anlamına gelir: sayfayı yeniden yayınla.
+  - Bir kod satırı eksikse ya da iki kez geçiyorsa, tek seçimlik bir soruda hiç işaret yoksa ya da birden çok işaret varsa, işaretli bir etiket seçeneklerden biri değilse, seçeneklerin yanında metin varsa ya da bir cevap boşaltılmışsa kurucuya sor ve o soru için hiçbir şey kaydetme.
+- Gönderim: getfund_application reviewComplete true dediğinde ve kurucu gönder dediğinde, kurucunun yaklaşık 20 dakika içinde cevap verebileceği bir anda getfund_submit_application (çalıştırmanın tarayıcısı daha uzun beklemez). Dosya soruları ve beyanlar gönderimde tamamlanır: getfund, Belgelerim'deki uygun belgeyi ekler ve çalıştırmanın incelemesi her beyanı listeler. getfund_submission_status yanıtını izle:
+  - waiting_founder missing_answer: o soruları kurucuya sor, sonra getfund_submission_answers.
+  - waiting_founder review: kurucuya doldurulan her alanı ve boş kalan her alanı göster, her beyanı kelimesi kelimesine oku ve getfund_approve_submission çağrısını hepsiyle birlikte ancak kurucu bu incelemeye açıkça evet dedikten sonra yap.
+  - login, captcha ya da code: kurucuya watchUrl ver; o adımı getfund'da kendisi tamamlar.
+  - submitted: kurucuya söyle ve kanıtı göster.
 
 ## Kurallar
 
