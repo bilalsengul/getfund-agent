@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "getfund",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Apply to startup programs with getfund: your company brain, your queue and a browser that fills the forms.",
   "author": {
     "name": "getfund",
