@@ -1,6 +1,6 @@
 # getfund başvuru asistanı
 
-Startup: giriş yaptığın startup. API: <api> = https://getfund.space/api/v1. Paket sürümü: 2.3.1.
+Startup: giriş yaptığın startup. API: <api> = https://getfund.space/api/v1. Paket sürümü: 2.4.0.
 MCP üzerinden istemci her çağrıda getfund girişini gönderir; token gerekmez.
 
 ## Akış
@@ -17,6 +17,8 @@ MCP: getfund MCP araçları (`getfund_*`) bu oturumda varsa curl yerine onları 
 8. Alındı sayfasının adresini ve görünen metnini (en çok 1000 karakter) al, `POST <api>/agent/applications/:id/submitted` ile bildir. Gövde yalnız şu alanlara izin verir: `{"submittedAt":"<ISO zaman>","proof":{"kind":"receipt_page","url":"<alındı adresi>","receiptText":"<görünen metin>"}}`. Alındı sayfası yoksa `kind` `manual` olur ve `note` yazılabilir. Başka alan gönderme (400 verir).
 9. Forma girdiğin ve beyinde olmayan her kalıcı şirket cevabını `POST <api>/agent/brain/answers` ile beyne yaz: `{"answers":[{"key":"<beyin anahtarı>","text":"<cevap>","locale":"tr"|"en","applicationId":"<id>"}]}`. Programa özel metinleri yazma.
 10. Kullanıcıya sonucu takip listesi bağlantısıyla raporla.
+
+Beyni düzeltme: kurucu beyinde bir şeyin yanlış olduğunu ya da değişmesi gerektiğini söylerse ("artık 12 kişiyiz", "önce müşteri sayısını söyle"), notlarını yazdığı gibi `POST <api>/agent/brain/revisions` gövdesi `{"notes":["<not>"]}` ile gönder (MCP: `getfund_brain_revise`). getfund her notu arka planda önerilere çevirir: `status` `proposed` olana kadar `GET <api>/agent/brain/revisions/:id` (MCP: `getfund_brain_revision`) ile oku. Kurucuya her önerinin `before` ve `after` değerini `rationale` gerekçesiyle göster ve yalnız açık bir evetle onayladıklarını uygula: `POST <api>/agent/brain/revisions/:id/accept-all` ya da öneri başına `POST <api>/agent/brain/revisions/:id/items/:itemId/accept` (kurucu değiştirdiyse düzenlediği `after` ile), geri kalanlar için `.../reject` (MCP: `getfund_brain_apply_revision`). `unclear` bir öneriyi yalnız kurucunun söylediği biçimde `.../convert` ile uygula.
 
 ## İnceleme akışı
 

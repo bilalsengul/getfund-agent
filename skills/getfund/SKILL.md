@@ -5,7 +5,7 @@ description: "Applies to programs through getfund. Use when the user says \"appl
 
 # getfund application assistant
 
-Startup: the one you sign in with. API: <api> = https://getfund.space/api/v1. Pack version: 2.3.1.
+Startup: the one you sign in with. API: <api> = https://getfund.space/api/v1. Pack version: 2.4.0.
 Over MCP the client sends your getfund sign-in on every call; no token is needed.
 Reply in the founder's language; the Turkish text of this skill is `SKILL.tr.md` next to this file.
 
@@ -23,6 +23,8 @@ MCP: if the getfund MCP tools (`getfund_*`) are available in this session, use t
 8. Take the receipt page's URL and visible text (at most 1000 characters) and report them with `POST <api>/agent/applications/:id/submitted`. The body allows only these fields: `{"submittedAt":"<ISO time>","proof":{"kind":"receipt_page","url":"<receipt url>","receiptText":"<visible text>"}}`. With no receipt page use `kind` `manual` and an optional `note`. Send no other field (it answers 400).
 9. Write every lasting company answer you entered that the brain lacked with `POST <api>/agent/brain/answers`: `{"answers":[{"key":"<brain key>","text":"<answer>","locale":"tr"|"en","applicationId":"<id>"}]}`. Do not write program-specific text.
 10. Report the result to the user with the link to their tracker.
+
+Refining the brain: when the founder says something in the brain is wrong or should change ("we are 12 people now", "lead with our customer count"), send their notes as they wrote them with `POST <api>/agent/brain/revisions` and body `{"notes":["<note>"]}` (MCP: `getfund_brain_revise`). getfund turns each note into proposals in the background: read them with `GET <api>/agent/brain/revisions/:id` (MCP: `getfund_brain_revision`) until `status` is `proposed`. Show the founder each item's `before` and `after` with its `rationale` and apply only what they approve with an explicit yes: `POST <api>/agent/brain/revisions/:id/accept-all`, or per item `POST <api>/agent/brain/revisions/:id/items/:itemId/accept` (with their edited `after` when they changed it) and `.../reject` for the rest (MCP: `getfund_brain_apply_revision`). Apply an `unclear` item only as the founder words it, with `.../convert`.
 
 ## Review workflow
 
